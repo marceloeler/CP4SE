@@ -163,7 +163,10 @@ public class Project {
 			}
 			else
 				if (f.getAbsolutePath().endsWith(".class")){
-					int lastIndex = f.getAbsolutePath().lastIndexOf("\\");
+					int lastIndex = f.getAbsolutePath().lastIndexOf("/");
+					if (lastIndex==-1)
+						lastIndex = f.getAbsolutePath().lastIndexOf("\\");
+					//System.out.println("  " + f.getAbsolutePath());
 					String className = f.getAbsolutePath().substring(lastIndex, f.getAbsolutePath().length()-6);															
 					className = className.replace(".class","");
 					
@@ -261,7 +264,9 @@ public class Project {
 			}
 			else
 				if (f.getAbsolutePath().endsWith(".class")){
-					int lastIndex = f.getAbsolutePath().lastIndexOf("\\");
+					int lastIndex = f.getAbsolutePath().lastIndexOf("/");
+					if (lastIndex==-1)
+						lastIndex = f.getAbsolutePath().lastIndexOf("\\");
 					String className = f.getAbsolutePath().substring(lastIndex+1, f.getAbsolutePath().length()-6);
 					Clazz clazz = new Clazz();
 					clazz.setName(className);			

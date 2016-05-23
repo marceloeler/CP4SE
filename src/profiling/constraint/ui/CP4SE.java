@@ -130,9 +130,11 @@ public class CP4SE {
 			}
 			
 			
-			if (metricByBenchmark){
+			
 				//get the details stored in Info (a data clump used to register some details of each project)
-				project.fillProjectInfo();
+			project.fillProjectInfo();
+			
+			if (metricByBenchmark){
 				//writes information of each project to a single file
 				fwProjects = new FileWriter(resultDir+currentBenchmarkName+"_ProjectInfo.csv",true);
 				fwProjects.write(project.getName()+","+project.getPInfo().getNumberOfClasses() + "," + project.getPInfo().getNumberOfMethods()+"\n");
