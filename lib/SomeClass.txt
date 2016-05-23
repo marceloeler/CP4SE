@@ -1,0 +1,36 @@
+CLASS: SomeClass
+
+ Method: write
+  Nodes: 5
+  Edges: 7
+  Loops: 0
+  Path 1: 0 4 10 26 44 
+    Constraint 1: unknown_1!=0
+    Constraint 2: unknown_1!=13
+    Constraint 3: unknown_1==13
+    
+    Total count: 6
+    Constants: 3(50.0%)
+    Variable: 3(50.0%)
+
+  Path 1: 0 44 
+    Constraint 1: unknown_1==0
+    
+    Total count: 2
+    Constants: 1(50.0%)
+    Variable: 1(50.0%)
+
+
+ Method: getCarriages
+  Nodes: 1
+  Edges: 0
+  Loops: 0
+  Path 1: 0 
+
+
+ Method: init
+  Nodes: 1
+  Edges: 0
+  Loops: 0
+  Path 1: 0 
+
