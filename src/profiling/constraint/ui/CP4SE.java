@@ -40,41 +40,48 @@ public class CP4SE {
 		             than the mean for this method is (2+4+0)/3 ==> 2 integers
 		This file is used to write the metrics for each individual project if the variable metricByProject is true
 		*/
-		FileWriter fwMethodMeanProject = null;
-		
-		/*
-		 * The same reasoning to calculate the metrics to a method is used to write data to this file
-		 * The difference is that it is used to write the metrics for the whole benchmark if the variable metricByBenchmark is true
-		 */
-		FileWriter fwMethodMeanBenchmark = null;
+		FileWriter fwMethodMean = null;
 		
 		/*
 		 * The metrics related to the comparisons within the constrains are written to this file
 		 * For example: 3 comparisons INT - INT, 2 comparisions FLOAT - FLOAT, and so on
 		 * This file is created if variable metricByBenchmark is true
 		 */
-		FileWriter fwComparisonsBenchmark = null;
+		FileWriter fwComparisons = null;
 		
 		/* The control flow graph (CFG) of each method is written in this file
 		 * This file is created if variable metricByBenchmark is true
 		 */
-		FileWriter fwCFGBenchmark = null;
+		FileWriter fwCFG = null;
 		
 		try {
 						
 			//If only one individual project is analyzed, then a new empty file must be created
 			//and a header must be written to the file
 			if (metricByProject){
-				fwMethodMeanProject= new FileWriter(resultDir+projectName+"_meanMethod.csv");
-				fwMethodMeanProject.write("Project,Package,Class,Method,NLp,NNLp,NPths,PS,NCtr,NEl,NCtt,NVar,NEx,NMC,NIC,NIntC,NEC,NInt,NFlt,NNull,NStr,NArr,NObj,NLExp,UPC,Args,Lob\n");	
+				fwMethodMean= new FileWriter(resultDir+projectName+"_meanMethod.csv");
+				fwMethodMean.write("Project,Package,Class,Method,NLp,NNLp,NPths,PS,NCtr,NEl,NCtt,NVar,NEx,NMC,NIC,NIntC,NEC,NInt,NFlt,NNull,NStr,NArr,NObj,NLExp,UPC,Args,Lob\n");
+				
+				
+				
+				fwCFG = new FileWriter(resultDir+projectName+"_cfg.csv");
+				fwCFG.write("Project,Package,Class,Method,CFG\n");
+				
+				fwComparisons = new FileWriter(resultDir+projectName+"_comparisons.csv");
+				String comparisonsHeader = "Project,Package,Class,Method,INT-INT,INT-FLOAT,FLOAT-FLOAT,BOOL-BOOL,REF-REF,REF-NULL,";
+				comparisonsHeader+="VARVAR,VAREXP,VARMETHOD,VARCONST,VARARRAY,EXPEXP,EXPMETHOD,EXPCONST,EXPARRAY,";
+				comparisonsHeader+="METHODMETHOD,METHODCONST,METHODARRAY,CONSTCONST,CONSTARRAY,ARRAYARRAY\n";
+				fwComparisons.write(comparisonsHeader);
+				
+				
 			}
 			
 			//If a set of projects is analyzed, then the file to write the metrics must have been already created
 			//Therefore during its instantiation it must be used append=true. The header of the file have already been written at this point.
 			if (metricByBenchmark){
-				fwMethodMeanBenchmark = new FileWriter(resultDir+benchmarkName+"_meanMethod.csv",true);
-				fwComparisonsBenchmark = new FileWriter(resultDir+benchmarkName+"_comparisons.csv");
-				fwCFGBenchmark = new FileWriter(resultDir+currentBenchmarkName+"_cfg.csv",true);
+				fwMethodMean = new FileWriter(resultDir+benchmarkName+"_meanMethod.csv",true);
+				fwComparisons = new FileWriter(resultDir+benchmarkName+"_comparisons.csv",true);
+				fwCFG = new FileWriter(resultDir+currentBenchmarkName+"_cfg.csv",true);
 			}
 				
 			
@@ -107,41 +114,42 @@ public class CP4SE {
 						//Generate paths for each method, perform symbolic execution and calculate metrics
 						method.calculateMetrics();
 						
-						if (metricByProject) //writes a file for each individual project
-							fwMethodMeanProject.write(method.meanMetricToCSV_short());
+						if (metricByProject){ //writes a file for each individual project
+							fwMethodMean.write(method.meanMetricToCSV_short());
+							fwComparisons.write(method.printComparisonsToCSV());
+							fwCFG.write(method.getPlanEdges());
+						}
 						if (metricByBenchmark){ //writes a single file for all projects of the benchmark
-							fwMethodMeanBenchmark.write(method.meanMetricToCSV_short());
-							fwComparisonsBenchmark.write(method.printComparisonsToCSV());
-							fwCFGBenchmark.write(method.getPlanEdges());
+							fwMethodMean.write(method.meanMetricToCSV_short());
+							fwComparisons.write(method.printComparisonsToCSV());
+							fwCFG.write(method.getPlanEdges());
 						}
 					}
 					clazz.setAllToNull();
 				} 
 			}
 			
-			//get the details stored in Info (a data clump used to register some details of each project)
-			project.fillProjectInfo();
 			
-			//writes information of each project to a single file
-			fwProjects = new FileWriter(resultDir+currentBenchmarkName+"_ProjectInfo.csv",true);
-			fwProjects.write(project.getName()+","+project.getPInfo().getNumberOfClasses() + "," + project.getPInfo().getNumberOfMethods()+"\n");
-			
+			if (metricByBenchmark){
+				//get the details stored in Info (a data clump used to register some details of each project)
+				project.fillProjectInfo();
+				//writes information of each project to a single file
+				fwProjects = new FileWriter(resultDir+currentBenchmarkName+"_ProjectInfo.csv",true);
+				fwProjects.write(project.getName()+","+project.getPInfo().getNumberOfClasses() + "," + project.getPInfo().getNumberOfMethods()+"\n");
+				fwProjects.close();
+			}
 			System.out.println(": " + project.getPInfo().getNumberOfClasses() + " classes and " + project.getPInfo().getNumberOfMethods()+" methods");
 			
 			currentProject = project;
 			
-			fwProjects.close();
-					
-			if (metricByProject) 
-				fwMethodMeanProject.close();
-			if (metricByBenchmark){
-				fwMethodMeanBenchmark.close();
-				fwComparisonsBenchmark.close();
-				fwCFGBenchmark.close();
-			}
+			
+			fwMethodMean.close();
+			fwComparisons.close();
+			fwCFG.close();
+	
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Problems creating, writing or reading files \n\n\n");
 			e.printStackTrace();
 		}
 
@@ -201,28 +209,30 @@ public class CP4SE {
 			fwProjects.write("Name,classes,methods\n");
 			fwProjects.close();
 			
+			File benchDir = new File(benchmarkPath);
+			System.out.println("Analyse projects at: " + benchmarkPath);
+			
+			for(File entry : benchDir.listFiles())
+			{
+				if(entry.isDirectory())
+				{
+					String absolutePath = entry.getAbsolutePath();
+					int lastIndex = absolutePath.lastIndexOf("\\");
+					String projectName = absolutePath.substring(lastIndex+1, absolutePath.length());
+					String projectPath = entry.getAbsolutePath();	
+					
+					analyzeProject(projectName, projectPath, resultDir);
+					benchmark.addProject(currentProject);
+				}
+				
+			}
+			
 		} catch (IOException e2) {
-			// TODO Auto-generated catch block
+			System.out.println("Problems creating result files in " + resultDir + "\n\n\n");
 			e2.printStackTrace();
 		}
 		
-		File benchDir = new File(benchmarkPath);
-		System.out.println("Analyse projects at: " + benchmarkPath);
 		
-		for(File entry : benchDir.listFiles())
-		{
-			if(entry.isDirectory())
-			{
-				String absolutePath = entry.getAbsolutePath();
-				int lastIndex = absolutePath.lastIndexOf("\\");
-				String projectName = absolutePath.substring(lastIndex+1, absolutePath.length());
-				String projectPath = entry.getAbsolutePath();	
-				
-				analyzeProject(projectName, projectPath, resultDir);
-				benchmark.addProject(currentProject);
-			}
-			
-		}
 		
 		/*
 		 * If there is only a jar file instead of the directories of the project
@@ -278,38 +288,52 @@ public class CP4SE {
  	
  	public static void main(String[] args){
 
- 		String benchmarkPath = "SF100\\";
-		String resultDir = "reportDir\\sf100-jss\\";
+ 		//String benchmarkPath = "SF100\\";
+		//String resultDir = "reportDir\\sf100-jss\\";
 		
-		benchmarkName="sub";
+		//benchmarkName="sub";
 
- 		CP4SE.analyzeBenchmark(benchmarkName, benchmarkPath, resultDir);
+ 		//CP4SE.analyzeBenchmark(benchmarkName, benchmarkPath, resultDir);
  		
- 		System.out.println("END");
-
-
- 		/*
  		
- 		if (args.length !=3){
- 			System.out.println("\nARGUMENTOS NECESSÁRIOS:");
- 			System.out.println("1 - nome do benchmark (conjunto de projetos)");
- 			System.out.println("2 - enderece absoluto da pasta onde estao os projetos");
- 			System.out.println("3 - endereço absoluto da pasta onde os resultados serao armazenados\n");
- 			System.out.println("java -jar CP4SE.jar sf100 C:\\DevTools\\projects\\ C:\\DevTools\\results\\");
+
+
+ 		
+ 		
+ 		if (args.length !=4){
+ 			System.out.println("\nYou are missing any argument:");
+ 			System.out.println("1 - type (-b for benchmark, -p for isolated project)");
+ 			System.out.println("2 - name of the project or benchmark");
+ 			System.out.println("3 - absolute path of the project or benchmark (all projects of the benchmark must be in a folder under the benchmark's path");
+ 			System.out.println("4 - absolute path to which the results should be written\n\n");
+ 			System.out.println("Example:\n java -cp .;C:/tools/CP4SE/lib/*  profiling.constraint.ui.CP4SE -b sf100 C:/DevTools/SF100/ C:/DevTools/reports/");
  		}
  		else {
- 			System.out.println(args.length);
- 			System.out.println (args[0]);
- 			System.out.println (args[1]);
- 			System.out.println (args[2]);
  			
- 		  String bName = args[0];
- 		  String bPath = args[1];
- 		  String resultDir = args[2];
- 		  benchmarkFile=true;
- 		  benchmarkName=bName;
- 		  analyzeBenchmark(bName, bPath, resultDir);
- 		}*/
+ 		  String option = args[0];
+ 		  String name = args[1];
+ 		  String path = args[2];
+ 		  String resultDir = args[3];
+ 		  
+ 		  if (option.equals("-b")){
+ 			  metricByBenchmark = true;
+ 			  metricByProject = false;
+ 			  benchmarkName = name;
+ 			  analyzeBenchmark(name, path, resultDir);
+ 		  } 
+ 		  else 
+ 			  if (option.equals("-p")){
+ 				  metricByBenchmark = false;
+ 				  metricByProject = true;
+ 				  currentProjectName = name;
+ 				  analyzeProject(name, path, resultDir);
+ 			  }
+ 			  else {
+ 				  System.out.println("Invalid type. Use -b for benchmark or -p for project  in the first argument");
+ 			  }
+
+ 		  System.out.println("END");
+ 		}
  		
  	}
 	
