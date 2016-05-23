@@ -28,6 +28,7 @@ public class CP4SE {
 	//method that analyze each individual project	
 	public static void analyzeProject(String projectName, String projectPath, String resultDir){
 		
+		
 		currentProjectName = projectName;
 		System.out.print("\n... analyzing "+ projectName + "\n");
 		
@@ -61,8 +62,6 @@ public class CP4SE {
 			if (metricByProject){
 				fwMethodMean= new FileWriter(resultDir+projectName+"_meanMethod.csv");
 				fwMethodMean.write("Project,Package,Class,Method,NLp,NNLp,NPths,PS,NCtr,NEl,NCtt,NVar,NEx,NMC,NIC,NIntC,NEC,NInt,NFlt,NNull,NStr,NArr,NObj,NLExp,UPC,Args,Lob\n");
-				
-				
 				
 				fwCFG = new FileWriter(resultDir+projectName+"_cfg.csv");
 				fwCFG.write("Project,Package,Class,Method,CFG\n");
@@ -286,6 +285,25 @@ public class CP4SE {
 
 	} 
 	
+	
+	private static String getAbsolutePath(String path){
+		
+		  if (path.startsWith("/") || path.contains(":\\")){
+			 if (!(path.endsWith("\\") || path.endsWith("/"))){
+				 path+="/";
+			 }
+			 File f = new File(path);
+			 String abspth = f.getAbsolutePath();
+		  }
+		  else {
+			  File f = new File("");
+			  String abspth = f.getAbsolutePath();
+			  path = abspth+"/"+path+"/";
+		  }
+		  
+		  return path;
+	}
+	
 
  	
  	public static void main(String[] args){
@@ -316,6 +334,10 @@ public class CP4SE {
  		  String name = args[1];
  		  String path = args[2];
  		  String resultDir = args[3];
+ 		  
+ 		  path = getAbsolutePath(path);
+ 		  resultDir = getAbsolutePath(resultDir);
+ 		  	
  		  
  		  if (option.equals("-b")){
  			  metricByBenchmark = true;
